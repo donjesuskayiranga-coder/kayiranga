@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Todo List App</title>
+<style>
+* {margin:0; padding:0; box-sizing:border-box;}
+body {font-family: Arial, Helvetica, sans-serif; background: blue; display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px;}
+.container {background:darkblue; padding:30px; border-radius:10px; width:100%; max-width:400px; box-shadow:0 5px 20px rgba(0,0,0,0.2);}
+h1 {text-align:center; color:#333; margin-bottom:20px;}
+form {display:flex; gap:10px; margin-bottom:20px;}
+input[type="text"] {flex:1; padding:10px; border:1px solid #ccc; border-radius:5px;}
+button {padding:10px 15px; background:#333; color:white; border:none; border-radius:5px; cursor:pointer;}
+button:hover {background:#555;}
+ul {list-style:none;}
+li {background:#eee; padding:10px; margin-bottom:10px; border-radius:5px; display:flex; justify-content:space-between; align-items:center;}
+.completed {text-decoration:line-through; color:green;}
+.delete-btn {background:#e74c3c; border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;}
+.delete-btn:hover {background:#c0392b;}
+.empty-state {text-align:center; color:#666; padding:20px; font-style:italic;}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>📝 Todo List App</h1>
+<form id="todoForm">
+<input type="text" id = "taskInput" placeholder="Enter a task..." required>
+<button type="submit">Add</button>
+</form>
+<ul id="taskList"></ul>
+</div>
+
+<script>
+const form = document.getElementById('todoForm');
+const input = document.getElementById('taskInput');
+const taskList = document.getElementById('taskList');
+
+function getTasks() {
+    const tasks = localStorage.getItem('tasks');
+    return tasks ? JSON.parse(tasks) : [];
+};
+
+function saveTasks(tasks) {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+};
+
+function loadTasks() {
+    const tasks = getTasks();
+    taskList.innerHTML = '';
+    if (tasks.length === 0) {
+        taskList.innerHTML = '<div class="empty-state">No tasks yet. Add one above!</div>';
+        return;
+    }
+    tasks.forEach(function(task, index){
+        const li = document.createElement('li');
+        const span = document.createElement('span');
+        span.textContent = task.text;
+        if(task.completed) span.classList.add('completed');
+        span.addEventListener('click', function(){ toggleTask(index); });
+        li.appendChild(span);
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '✕';
+        delBtn.className = 'delete-btn';
+        delBtn.addEventListener('click', function(e){ 
+            e.stopPropagation();
+            deleteTask(index); 
+        });
+        li.appendChild(delBtn);
+
+        taskList.appendChild(li);
+    });
+};
+
+function addTask(text) {
+    const tasks = getTasks();
+    tasks.push({text: text, completed: false});
+    saveTasks(tasks);
+    loadTasks();
+};
+
+function toggleTask(index) {
+    const tasks = getTasks();
+    tasks[index].completed = !tasks[index].completed;
+    saveTasks(tasks);
+    loadTasks();
+};
+
+function deleteTask(index) {
+    const tasks = getTasks();
+    tasks.splice(index,1);
+    saveTasks(tasks);
+    loadTasks();
+};
+
+form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const text = input.value.trim();
+    if(!text) {
+        alert('Please enter a task!');
+        return;
+    }
+    addTask(text);
+    input.value = "";
+    input.focus();
+});
+
+loadTasks();
+</script>
+
+</body>
+</html>
